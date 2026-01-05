@@ -18,6 +18,16 @@ const messageSchema = new mongoose.Schema(
       enum: ["sent", "delivered", "seen"],
       default: "sent"
     },
+    content: String,
+
+    // 🔁 REPLY
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+      default: null,
+    },
+     isDeleted: { type: Boolean, default: false }, // delete for everyone
+    deletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     fileName: { type: String },   // for documents
     fileSize: { type: Number },   // optional
 

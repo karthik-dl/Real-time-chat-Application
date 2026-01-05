@@ -7,34 +7,27 @@ import cloudinary from "../config/cloudinary.js";
    SEND TEXT MESSAGE
 ---------------------------------------------------- */
 export const sendMessage = async (req, res) => {
-  try {
-    const { chatId, content } = req.body;
+  const { chatId, content, replyTo } = req.body;
 
-    if (!chatId || !content) {
-      return res.status(400).json({ message: "Invalid data" });
-    }
+  let message = await Message.create({
+    sender: req.user._id,
+    chat: chatId,
+    content,
+    replyTo: replyTo || null,
+    readBy: [req.user._id],
+  });
 
-    const message = await Message.create({
-      sender: req.user._id,
-      chat: chatId,
-      content,
-      type: "text",
-      readBy: [req.user._id],
-    });
+  message = await message.populate([
+    { path: "sender", select: "name avatar" },
+    {
+      path: "replyTo",
+      populate: { path: "sender", select: "name" },
+    },
+  ]);
 
-    await Chat.findByIdAndUpdate(chatId, {
-      lastMessage: message._id,
-    });
+  req.io.to(chatId).emit("receive-message", message);
 
-    const fullMessage = await Message.findById(message._id)
-      .populate("sender", "name avatar")
-      .populate("chat");
-
-    res.status(201).json(fullMessage);
-  } catch (err) {
-    console.error("Send message error:", err);
-    res.status(500).json({ message: "Failed to send message" });
-  }
+  res.status(201).json(message);
 };
 
 /* ----------------------------------------------------
@@ -223,27 +216,35 @@ export const editMessage = async (req, res) => {
    DELETE MESSAGE (SOFT DELETE)
 ---------------------------------------------------- */
 export const deleteMessage = async (req, res) => {
-  try {
-    const { id } = req.params;
+  const { messageId } = req.params;
+  const { forEveryone } = req.body;
 
-    const message = await Message.findById(id);
+  const message = await Message.findById(messageId);
+  if (!message) return res.status(404).json({ message: "Not found" });
 
-    if (!message) {
-      return res.status(404).json({ message: "Message not found" });
-    }
-
-    if (message.sender.toString() !== req.user._id.toString()) {
+  // DELETE FOR EVERYONE
+  if (forEveryone) {
+    if (!message.sender.equals(req.user._id)) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
     message.isDeleted = true;
-    message.content = "This message was deleted";
-
+    message.content = "";
     await message.save();
 
-    res.json({ message: "Message deleted" });
-  } catch (err) {
-    console.error("Delete message error:", err);
-    res.status(500).json({ message: "Failed to delete message" });
+    req.io.to(message.chat.toString()).emit("message-deleted", {
+      messageId,
+      forEveryone: true,
+    });
   }
+
+  // DELETE FOR ME
+  else {
+    if (!message.deletedFor.includes(req.user._id)) {
+      message.deletedFor.push(req.user._id);
+      await message.save();
+    }
+  }
+
+  res.json({ success: true });
 };

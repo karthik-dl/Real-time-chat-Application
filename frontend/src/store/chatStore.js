@@ -1,95 +1,3 @@
-// import { create } from "zustand";
-// import api from "../services/api";
-
-// export const useChatStore = create((set, get) => ({
-//   // -----------------------------
-//   // STATE
-//   // -----------------------------
-//   chats: [],
-//   selectedChat: null,
-//   messages: [],
-//   users: [],
-//   onlineUsers: [],
-
-//   // -----------------------------
-//   // BASIC SETTERS
-//   // -----------------------------
-//   setUsers: (users) => set({ users }),
-//   setOnlineUsers: (users) => set({ onlineUsers: users }),
-
-//   // -----------------------------
-//   // FETCH USERS
-//   // -----------------------------
-//   fetchUsers: async () => {
-//     const res = await api.get("/users");
-//     set({ users: res.data });
-//   },
-
-//   // -----------------------------
-//   // FETCH CHATS
-//   // -----------------------------
-//   fetchChats: async () => {
-//     const res = await api.get("/chats");
-//     set({ chats: res.data });
-//   },
-
-//   // -----------------------------
-//   // CREATE CHAT
-//   // -----------------------------
-//   createChat: async (userId) => {
-//     const res = await api.post("/chats", { userId });
-
-//     set((state) => ({
-//       chats: [res.data, ...state.chats],
-//       selectedChat: res.data,
-//       messages: [], // fresh chat
-//     }));
-//   },
-
-//   // -----------------------------
-//   // SELECT CHAT (SAFE)
-//   // -----------------------------
-//   selectChat: async (chat) => {
-//     if (!chat?._id) return;
-
-//     const { selectedChat } = get();
-
-//     // If switching to a DIFFERENT chat, fetch messages
-//     if (selectedChat?._id !== chat._id) {
-//       const res = await api.get(`/messages/${chat._id}`);
-
-//       set({
-//         selectedChat: chat,
-//         messages: res.data,
-//       });
-
-//       await api.put(`/messages/read/${chat._id}`);
-//     } else {
-//       // Same chat → just update selectedChat reference
-//       set({ selectedChat: chat });
-//     }
-//   },
-
-//   // -----------------------------
-//   // ADD MESSAGE (OPTIMISTIC + SOCKET)
-//   // -----------------------------
-//   addMessage: (message) =>
-//     set((state) => {
-//       // Prevent duplicates
-//       if (state.messages.some((m) => m._id === message._id)) {
-//         return state;
-//       }
-
-//       return {
-//         messages: [...state.messages, message],
-//       };
-//     }),
-// }));
-// ............................................................................................../////
-
-
-
-
 import { create } from "zustand";
 import api from "../services/api";
 
@@ -102,9 +10,17 @@ export const useChatStore = create((set, get) => ({
   messages: [],
   users: [],
   onlineUsers: [],
-
-  // 🔹 TYPING INDICATOR STATE
+  replyTo: null,
+    // 🔹 TYPING INDICATOR STATE
   typingUser: null,
+
+  // -------------------------
+  // SET REPLY TO
+  // -------------------------
+  setReplyTo: (message) => set({ replyTo: message }),
+  clearReply: () => set({ replyTo: null }),
+
+
 
   // -------------------------
   // FETCH USERS
@@ -147,34 +63,35 @@ export const useChatStore = create((set, get) => ({
   // ADD MESSAGE (REAL-TIME)
   // -------------------------
   addMessage: (message) =>
-    set((state) => {
-      const chatId =
-        typeof message.chat === "object"
-          ? message.chat._id
-          : message.chat;
+  set((state) => {
+    const chatId =
+      typeof message.chat === "object"
+        ? message.chat._id
+        : message.chat;
 
-      return {
-        // add message only if chat is open
-        messages:
-          state.selectedChat?._id === chatId
-            ? [...state.messages, message]
-            : state.messages,
+    // 🔥 REMOVE TEMP MESSAGE WHEN REAL MESSAGE ARRIVES
+    const messagesWithoutTemp = message.isTemp
+      ? state.messages
+      : state.messages.filter((m) => !m.isTemp);
 
-        // update unread count + last message
-        chats: state.chats.map((chat) =>
-          chat._id === chatId
-            ? {
-                ...chat,
-                lastMessage: message,
-                unreadCount:
-                  state.selectedChat?._id === chatId
-                    ? 0
-                    : (chat.unreadCount || 0) + 1,
-              }
-            : chat
-        ),
-      };
-    }),
+    // 🔒 PREVENT DUPLICATES (same _id)
+    if (messagesWithoutTemp.some((m) => m._id === message._id)) {
+      return state;
+    }
+
+    return {
+      messages:
+        state.selectedChat?._id === chatId
+          ? [...messagesWithoutTemp, message]
+          : state.messages,
+
+      chats: state.chats.map((chat) =>
+        chat._id === chatId
+          ? { ...chat, lastMessage: message }
+          : chat
+      ),
+    };
+  }),
 
   // -------------------------
   // MESSAGE DELIVERY ✓
@@ -210,4 +127,27 @@ export const useChatStore = create((set, get) => ({
   // -------------------------
   setTypingUser: (userId) => set({ typingUser: userId }),
   clearTypingUser: () => set({ typingUser: null }),
+
+
+  deleteMessageLocal: (messageId, forEveryone, userId) =>
+  set((state) => ({
+    messages: state.messages.map((m) => {
+      if (m._id !== messageId) return m;
+
+      // DELETE FOR EVERYONE
+      if (forEveryone) {
+        return {
+          ...m,
+          isDeleted: true,
+          content: "",
+        };
+      }
+
+      // DELETE FOR ME
+      return {
+        ...m,
+        deletedFor: [...(m.deletedFor || []), userId],
+      };
+    }),
+  })),
 }));

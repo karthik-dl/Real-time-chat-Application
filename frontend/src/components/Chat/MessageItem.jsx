@@ -1,390 +1,15 @@
-// import React from "react";
-// const MessageItem = ({ message, currentUserId, isGroup }) => {
-//   // -------- SAFE senderId extraction --------
-//   const senderId =
-//     typeof message.sender === "string"
-//       ? message.sender
-//       : message.sender?._id || message.sender?.id;
-
-    
-//   const isOwn = senderId === currentUserId;
-
-//   // -------- DEBUG (remove later) --------
-//   console.log("senderId:", senderId, "currentUserId:", currentUserId);
-
-//   return (
-//     <div
-//       style={{
-//         display: "flex",
-//         justifyContent: isOwn ? "flex-end" : "flex-start",
-//         padding: "4px 12px",
-//       }}
-//     >
-//       <div
-//         style={{
-//           maxWidth: "65%",
-//           padding: "8px 12px",
-//           borderRadius: "8px",
-//           backgroundColor: isOwn ? "#dcf8c6" : "#ffffff",
-//           alignSelf: isOwn ? "flex-end" : "flex-start",
-//           boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
-//         }}
-//       >
-//         {/* Group sender name */}
-//         {isGroup && !isOwn && message.sender?.name && (
-//           <div style={{ fontSize: "12px", fontWeight: 600, color: "#2563eb" }}>
-//             {message.sender.name}
-//           </div>
-//         )}
-
-//         <div>{message.content}</div>
-
-//         <div
-//           style={{
-//             fontSize: "11px",
-//             textAlign: "right",
-//             marginTop: "4px",
-//             color: "#6b7280",
-//           }}
-//         >
-//           {new Date(message.createdAt || Date.now()).toLocaleTimeString([], {
-//             hour: "2-digit",
-//             minute: "2-digit",
-//           })}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default MessageItem;
-
-
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-
-// import { formatTime } from "../../utils/formatTime";
-
-// const MessageItem = ({ message, currentUserId, isGroup }) => {
-//   const senderId =
-//     typeof message.sender === "string"
-//       ? message.sender
-//       : message.sender?._id;
-
-//   const isOwn = senderId === currentUserId;
-//   const imageUrl = message.fileUrl || message.content;
-
-//   // ----------------------------
-//   // WHATSAPP TICK LOGIC
-//   // ----------------------------
-//   const getMessageStatus = () => {
-//     if (!isOwn) return null;
-
-//     if (message.seen || message.isRead) {
-//       return { icon: "✓✓", color: "#53bdeb", label: "Read" };
-//     }
-//     if (message.delivered || message.isDelivered) {
-//       return { icon: "✓✓", color: "#9ca3af", label: "Delivered" };
-//     }
-//     return { icon: "✓", color: "#9ca3af", label: "Sent" };
-//   };
-
-//   const messageStatus = getMessageStatus();
-
-//   // ----------------------------
-//   // CONTENT RENDERER
-//   // ----------------------------
-//   const renderContent = () => {
-//     if (message.isDeleted) {
-//       return (
-//         <em style={{ fontStyle: "italic", opacity: 0.7 }}>
-//           🚫 This message was deleted
-//         </em>
-//       );
-//     }
-
-//     switch (message.type) {
-//       case "image":
-//         return (
-//           <img
-//             src={message.fileUrl || message.content}
-//             alt="uploaded"
-//             style={{
-//               maxWidth: "240px",
-//               borderRadius: "12px",
-//               cursor: "pointer",
-//             }}
-//             onClick={() =>
-//               window.open(message.fileUrl || message.content, "_blank")
-//             }
-//           />
-//         );
-
-//       case "file":
-//         return (
-//           <a
-//             href={message.fileUrl || message.content}
-//             target="_blank"
-//             rel="noopener noreferrer"
-//             style={{
-//               display: "flex",
-//               alignItems: "center",
-//               gap: "0.5rem",
-//               padding: "0.5rem",
-//               borderRadius: "8px",
-//               backgroundColor: isOwn
-//                 ? "rgba(255,255,255,0.15)"
-//                 : "#f3f4f6",
-//               color: isOwn ? "#dbeafe" : "#2563eb",
-//               textDecoration: "none",
-//             }}
-//           >
-//             <span style={{ fontSize: "1.25rem" }}>📎</span>
-//             <span>{message.fileName || "Download file"}</span>
-//           </a>
-//         );
-
-//       default:
-//         return (
-//           <p style={{ margin: 0, lineHeight: 1.5 }}>
-//             {message.content}
-//           </p>
-//         );
-//     }
-//   };
-
-//   // ----------------------------
-//   // STYLES
-//   // ----------------------------
-//   const styles = {
-//     container: {
-//       display: "flex",
-//       justifyContent: isOwn ? "flex-end" : "flex-start",
-//       padding: "0.25rem 1rem",
-//       animation: "fadeIn 0.25s ease",
-//     },
-//     wrapper: {
-//       maxWidth: "75%",
-//       display: "flex",
-//       flexDirection: "column",
-//       gap: "0.25rem",
-//     },
-//     sender: {
-//       fontSize: "0.75rem",
-//       fontWeight: 600,
-//       color: "#667eea",
-//       paddingLeft: "0.5rem",
-//     },
-//     bubble: {
-//       background: isOwn
-//         ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-//         : "#ffffff",
-//       color: isOwn ? "#ffffff" : "#1f2937",
-//       padding: "0.75rem 1rem",
-//       borderRadius: isOwn
-//         ? "18px 18px 4px 18px"
-//         : "18px 18px 18px 4px",
-//       boxShadow: isOwn
-//         ? "0 4px 12px rgba(102,126,234,0.3)"
-//         : "0 2px 8px rgba(0,0,0,0.1)",
-//     },
-//     meta: {
-//       display: "flex",
-//       justifyContent: "flex-end",
-//       alignItems: "center",
-//       gap: "0.35rem",
-//       marginTop: "0.25rem",
-//       fontSize: "0.7rem",
-//       opacity: 0.85,
-//     },
-//   };
-
-//   return (
-//     <>
-//       <style>
-//         {`
-//           @keyframes fadeIn {
-//             from {
-//               opacity: 0;
-//               transform: translateY(6px);
-//             }
-//             to {
-//               opacity: 1;
-//               transform: translateY(0);
-//             }
-//           }
-//         `}
-//       </style>
-
-//       <div style={styles.container}>
-//         <div style={styles.wrapper}>
-//           {/* GROUP SENDER NAME */}
-//           {isGroup && !isOwn && (
-//             <div style={styles.sender}>
-//               {message.sender?.name}
-//             </div>
-//           )}
-
-//           {/* MESSAGE BUBBLE */}
-//           <div style={styles.bubble}>
-//             {renderContent()}
-
-//             {/* TIME + TICKS */}
-//             <div style={styles.meta}>
-//               <span>{formatTime(message.createdAt)}</span>
-
-//               {messageStatus && (
-//                 <span
-//                   title={messageStatus.label}
-//                   style={{
-//                     color: messageStatus.color,
-//                     fontWeight: "bold",
-//                     fontSize: "0.9rem",
-//                   }}
-//                 >
-//                   {messageStatus.icon}
-//                 </span>
-//               )}
-//             </div>
-//           </div>
-//           <img src={imageUrl} />
-
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default MessageItem;
-// import { formatTime } from "../../utils/formatTime";
-
-// const MessageItem = ({ message, currentUserId, isGroup }) => {
-//   // ----------------------------
-//   // DETERMINE SENDER
-//   // ----------------------------
-//   const senderId =
-//     typeof message.sender === "string"
-//       ? message.sender
-//       : message.sender?._id;
-
-//   const isOwn = senderId === currentUserId;
-
-//   // ----------------------------
-//   // WHATSAPP TICKS
-//   // ----------------------------
-//   let ticks = "";
-//   let tickColor = "#9ca3af";
-
-//   if (isOwn) {
-//     if (message.seen) {
-//       ticks = "✓✓";
-//       tickColor = "#53bdeb";
-//     } else if (message.delivered) {
-//       ticks = "✓✓";
-//     } else {
-//       ticks = "✓";
-//     }
-//   }
-
-//   // ----------------------------
-//   // MESSAGE CONTENT
-//   // ----------------------------
-//   const renderContent = () => {
-//     switch (message.type) {
-//       case "image":
-//         return (
-//           <img
-//             src={message.fileUrl}
-//             alt="image"
-//             style={{
-//               maxWidth: "220px",
-//               borderRadius: "10px",
-//               marginTop: "4px",
-//             }}
-//           />
-//         );
-
-//       case "file":
-//         return (
-//           <a
-//             href={message.fileUrl}
-//             target="_blank"
-//             rel="noreferrer"
-//             style={{ color: "#2563eb" }}
-//           >
-//             📎 Download file
-//           </a>
-//         );
-
-//       default:
-//         return <span>{message.content}</span>;
-//     }
-//   };
-
-//   // ----------------------------
-//   // UI
-//   // ----------------------------
-//   return (
-//     <div
-//       style={{
-//         display: "flex",
-//         justifyContent: isOwn ? "flex-end" : "flex-start",
-//         padding: "0.25rem 1rem",
-//       }}
-//     >
-//       <div
-//         style={{
-//           maxWidth: "70%",
-//           backgroundColor: isOwn ? "#dcf8c6" : "#ffffff",
-//           padding: "0.5rem 0.75rem",
-//           borderRadius: "10px",
-//           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-//         }}
-//       >
-//         {/* GROUP SENDER NAME */}
-//         {isGroup && !isOwn && (
-//           <div
-//             style={{
-//               fontSize: "0.7rem",
-//               fontWeight: 600,
-//               marginBottom: "2px",
-//             }}
-//           >
-//             {message.sender?.name}
-//           </div>
-//         )}
-
-//         {/* CONTENT */}
-//         {renderContent()}
-
-//         {/* TIME + TICKS */}
-//         <div
-//           style={{
-//             display: "flex",
-//             justifyContent: "flex-end",
-//             gap: "4px",
-//             fontSize: "0.65rem",
-//             marginTop: "2px",
-//             color: "#6b7280",
-//           }}
-//         >
-//           <span>{formatTime(message.createdAt)}</span>
-//           {isOwn && <span style={{ color: tickColor }}>{ticks}</span>}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default MessageItem;
-
-
+import { useState, useRef, useEffect } from "react";
 import { formatTime } from "../../utils/formatTime";
+import api from "../../services/api";
+import { useChatStore } from "../../store/chatStore";
 
 const MessageItem = ({ message, currentUserId, isGroup }) => {
-  // ----------------------------
-  // DETERMINE SENDER
-  // ----------------------------
+  const setReplyTo = useChatStore((s) => s.setReplyTo);
+  const deleteMessageLocal = useChatStore((s) => s.deleteMessageLocal);
+  
+  const [showMenu, setShowMenu] = useState(false);
+  const dropdownRef = useRef(null);
+
   const senderId =
     typeof message.sender === "string"
       ? message.sender
@@ -392,50 +17,119 @@ const MessageItem = ({ message, currentUserId, isGroup }) => {
 
   const isOwn = senderId === currentUserId;
 
-  // ----------------------------
-  // WHATSAPP-STYLE TICKS
-  // ----------------------------
-  let ticks = "";
-  let tickColor = "#9ca3af";
+  // DELETE FOR ME - DON'T RENDER
+  if (message.deletedFor?.includes(currentUserId)) return null;
 
-  if (isOwn) {
-    if (message.seen) {
-      ticks = "✓✓";
-      tickColor = "#53bdeb"; // blue = seen
-    } else if (message.delivered) {
-      ticks = "✓✓"; // delivered
-    } else {
-      ticks = "✓"; // sent
+  // ----------------------------
+  // CLOSE DROPDOWN ON OUTSIDE CLICK
+  // ----------------------------
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
     }
-  }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
 
   // ----------------------------
-  // MESSAGE CONTENT
+  // WHATSAPP TICKS
+  // ----------------------------
+  const getTickStatus = () => {
+    if (!isOwn) return null;
+
+    if (message.seen) {
+      return { ticks: "✓✓", color: "#53bdeb" };
+    } else if (message.delivered) {
+      return { ticks: "✓✓", color: "#9ca3af" };
+    }
+    return { ticks: "✓", color: "#9ca3af" };
+  };
+
+  const tickStatus = getTickStatus();
+
+  // ----------------------------
+  // DELETE HANDLER
+  // ----------------------------
+  const handleDelete = async (forEveryone) => {
+    try {
+      await api.delete(`/messages/${message._id}`, {
+        data: { forEveryone },
+      });
+
+      // IMMEDIATE LOCAL UPDATE
+      deleteMessageLocal(message._id, forEveryone, currentUserId);
+
+      setShowMenu(false);
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+  };
+
+  // ----------------------------
+  // HANDLE REPLY
+  // ----------------------------
+  const handleReply = () => {
+    setReplyTo(message);
+    setShowMenu(false);
+  };
+
+  // ----------------------------
+  // RENDER CONTENT
   // ----------------------------
   const renderContent = () => {
     switch (message.type) {
       case "image":
         return (
           <img
-            src={message.fileUrl}
-            alt="image"
+            src={message.content}
+            alt="Shared image"
             style={{
-              maxWidth: "220px",
-              borderRadius: "10px",
-              marginTop: "4px",
+              maxWidth: "100%",
+              width: "220px",
+              height: "auto",
+              borderRadius: "0.625rem",
+              marginTop: "0.25rem",
+              display: "block",
+              cursor: "pointer",
+              transition: "transform 0.2s ease",
             }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.transform = "scale(1.02)")
+            }
+            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
           />
         );
 
       case "file":
         return (
           <a
-            href={message.fileUrl}
+            href={message.content}
             target="_blank"
             rel="noreferrer"
             style={{
               color: "#2563eb",
-              textDecoration: "underline",
+              textDecoration: "none",
+              fontWeight: 500,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              transition: "color 0.2s ease",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = "#1d4ed8";
+              e.currentTarget.style.textDecoration = "underline";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = "#2563eb";
+              e.currentTarget.style.textDecoration = "none";
             }}
           >
             📎 Download file
@@ -443,7 +137,17 @@ const MessageItem = ({ message, currentUserId, isGroup }) => {
         );
 
       default:
-        return <span>{message.content}</span>;
+        return (
+          <span
+            style={{
+              display: "inline-block",
+              wordBreak: "break-word",
+              lineHeight: 1.5,
+            }}
+          >
+            {message.content}
+          </span>
+        );
     }
   };
 
@@ -456,50 +160,295 @@ const MessageItem = ({ message, currentUserId, isGroup }) => {
         display: "flex",
         justifyContent: isOwn ? "flex-end" : "flex-start",
         padding: "0.25rem 1rem",
+        position: "relative",
+        animation: "slideIn 0.2s ease-out",
       }}
     >
       <div
         style={{
           maxWidth: "70%",
-          backgroundColor: isOwn ? "#dcf8c6" : "#ffffff",
+          background: isOwn
+            ? "linear-gradient(135deg, #dcf8c6 0%, #d4f4c1 100%)"
+            : "#ffffff",
           padding: "0.5rem 0.75rem",
-          borderRadius: "10px",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          borderRadius: "0.625rem",
+          borderBottomRightRadius: isOwn ? "0.25rem" : "0.625rem",
+          borderBottomLeftRadius: isOwn ? "0.625rem" : "0.25rem",
+          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
+          border: isOwn ? "none" : "1px solid #e5e7eb",
+          position: "relative",
+          wordWrap: "break-word",
+          transition: "box-shadow 0.2s ease",
         }}
+        onMouseOver={(e) =>
+          (e.currentTarget.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.12)")
+        }
+        onMouseOut={(e) =>
+          (e.currentTarget.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.08)")
+        }
       >
-        {/* GROUP CHAT – SENDER NAME */}
+        {/* GROUP CHAT NAME */}
         {isGroup && !isOwn && (
           <div
             style={{
-              fontSize: "0.7rem",
+              fontSize: "0.75rem",
               fontWeight: 600,
-              marginBottom: "2px",
+              marginBottom: "0.25rem",
               color: "#4f46e5",
+              letterSpacing: "0.01em",
             }}
           >
             {message.sender?.name}
           </div>
         )}
 
-        {/* MESSAGE CONTENT */}
-        {renderContent()}
+        {/* REPLY PREVIEW */}
+        {message.replyTo && (
+          <div
+            style={{
+              fontSize: "0.8125rem",
+              color: "#374151",
+              padding: "0.5rem",
+              marginBottom: "0.5rem",
+              borderLeft: "3px solid #22c55e",
+              background: "#f0fdf4",
+              borderRadius: "0.375rem",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.6875rem",
+                color: "#16a34a",
+                fontWeight: 600,
+                marginBottom: "0.125rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.025em",
+              }}
+            >
+              {message.replyTo.sender?.name}
+            </div>
+            <div
+              style={{
+                color: message.replyTo.isDeleted ? "#6b7280" : "#374151",
+                fontStyle: message.replyTo.isDeleted ? "italic" : "normal",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {message.replyTo.isDeleted
+                ? "Original message deleted"
+                : message.replyTo.content}
+            </div>
+          </div>
+        )}
 
-        {/* TIME + STATUS */}
+        {/* MESSAGE BODY */}
+        {message.isDeleted ? (
+          <div
+            style={{
+              fontStyle: "italic",
+              color: "#6b7280",
+              fontSize: "0.875rem",
+            }}
+          >
+            This message was deleted
+          </div>
+        ) : (
+          <div style={{ color: "#111827" }}>{renderContent()}</div>
+        )}
+
+        {/* FOOTER - TIME + TICKS + MENU */}
         <div
           style={{
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             alignItems: "center",
-            gap: "4px",
-            fontSize: "0.65rem",
-            marginTop: "2px",
-            color: "#6b7280",
+            gap: "0.5rem",
+            fontSize: "0.6875rem",
+            marginTop: "0.375rem",
           }}
         >
-          <span>{formatTime(message.createdAt)}</span>
-          {isOwn && <span style={{ color: tickColor }}>{ticks}</span>}
+          {/* LEFT SIDE - TIME + TICKS */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.375rem",
+              color: "#9ca3af",
+            }}
+          >
+            <span style={{ whiteSpace: "nowrap" }}>
+              {formatTime(message.createdAt)}
+            </span>
+
+            {tickStatus && (
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  color: tickStatus.color,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {tickStatus.ticks}
+              </span>
+            )}
+          </div>
+
+          {/* RIGHT SIDE - MENU BUTTON */}
+          {!message.isDeleted && (
+            <div style={{ position: "relative" }} ref={dropdownRef}>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1.125rem",
+                  color: "#6b7280",
+                  padding: "0.125rem 0.25rem",
+                  borderRadius: "0.25rem",
+                  transition: "all 0.2s ease",
+                  transform: "rotate(90deg)",
+                  lineHeight: 1,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = "rgba(0, 0, 0, 0.05)";
+                  e.currentTarget.style.color = "#374151";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "#6b7280";
+                }}
+                aria-label="Message options"
+              >
+                ⋯
+              </button>
+
+              {/* DROPDOWN MENU */}
+              {showMenu && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "100%",
+                    right: isOwn ? "0" : "auto",
+                    left: isOwn ? "auto" : "0",
+                    marginBottom: "0.25rem",
+                    background: "#ffffff",
+                    borderRadius: "0.5rem",
+                    boxShadow:
+                      "0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+                    zIndex: 1000,
+                    overflow: "hidden",
+                    minWidth: "180px",
+                    animation: "dropdownSlideUp 0.15s ease-out",
+                  }}
+                >
+                  {/* REPLY */}
+                  <MenuItem onClick={handleReply}>
+                    <span style={{ fontSize: "1.125rem" }}>↩️</span>
+                    <span>Reply</span>
+                  </MenuItem>
+
+                  {/* DIVIDER */}
+                  <div
+                    style={{
+                      height: "1px",
+                      background: "#e5e7eb",
+                      margin: "0 0.5rem",
+                    }}
+                  />
+
+                  {/* DELETE FOR ME */}
+                  <MenuItem onClick={() => handleDelete(false)}>
+                    <span style={{ fontSize: "1.125rem" }}>🗑️</span>
+                    <span>Delete for me</span>
+                  </MenuItem>
+
+                  {/* DELETE FOR EVERYONE (ONLY FOR OWN MESSAGES) */}
+                  {isOwn && (
+                    <>
+                      <div
+                        style={{
+                          height: "1px",
+                          background: "#e5e7eb",
+                          margin: "0 0.5rem",
+                        }}
+                      />
+                      <MenuItem danger onClick={() => handleDelete(true)}>
+                        <span style={{ fontSize: "1.125rem" }}>🗑️</span>
+                        <span>Delete for everyone</span>
+                      </MenuItem>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* INLINE ANIMATION STYLES */}
+      <style>
+        {`
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          @keyframes dropdownSlideUp {
+            from {
+              opacity: 0;
+              transform: translateY(8px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
+// ----------------------------
+// MENU ITEM COMPONENT
+// ----------------------------
+const MenuItem = ({ children, onClick, danger }) => {
+  const childArray = Array.isArray(children) ? children : [children];
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: "0.75rem 1rem",
+        cursor: "pointer",
+        fontSize: "0.875rem",
+        color: danger ? "#ef4444" : "#374151",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.75rem",
+        transition: "background 0.15s ease",
+        fontWeight: 500,
+      }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.background = danger ? "#fef2f2" : "#f3f4f6")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.background = "transparent")
+      }
+    >
+      {childArray}
     </div>
   );
 };

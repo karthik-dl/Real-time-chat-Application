@@ -1,248 +1,3 @@
-// import { useEffect } from "react";
-
-// import Sidebar from "../components/Sidebar/Sidebar";
-// import ChatHeader from "../components/Chat/ChatHeader";
-// import MessageList from "../components/Chat/MessageList";
-// import ChatInput from "../components/Chat/ChatInput";
-
-// import { useAuthStore } from "../store/authStore";
-// import { useChatStore } from "../store/chatStore";
-// import useSocket from "../hooks/useSocket";
-
-// const ChatPage = () => {
-//   const { user } = useAuthStore();
-
-//   const {
-//     selectedChat,
-//     messages,
-//     fetchChats,
-//     addMessage,
-//     onlineUsers,
-//   } = useChatStore();
-
-//   const socket = useSocket(user?._id);
-
-//   // -----------------------------
-//   // STOP RENDER UNTIL USER EXISTS
-//   // -----------------------------
-//   if (!user) {
-//     return (
-//       <div
-//         style={{
-//           height: "100vh",
-//           display: "flex",
-//           alignItems: "center",
-//           justifyContent: "center",
-//           color: "#6b7280",
-//         }}
-//       >
-//         Loading user...
-//       </div>
-//     );
-//   }
-
-//   // -----------------------------
-//   // FETCH CHATS ON LOAD
-//   // -----------------------------
-//   useEffect(() => {
-//     fetchChats();
-//   }, [fetchChats]);
-
-//   // -----------------------------
-//   // JOIN CHAT ROOM
-//   // -----------------------------
-//   useEffect(() => {
-//     if (!socket || !selectedChat?._id) return;
-//     socket.emit("join-chat", selectedChat._id);
-//   }, [socket, selectedChat]);
-
-//   // -----------------------------
-//   // RECEIVE MESSAGE
-//   // -----------------------------
-//   useEffect(() => {
-//     if (!socket) return;
-
-//     const handleReceiveMessage = (message) => {
-//       const chatId =
-//         typeof message.chat === "object"
-//           ? message.chat._id
-//           : message.chat;
-
-//       if (chatId === selectedChat?._id) {
-//         addMessage(message);
-//       }
-//     };
-
-//     socket.on("receive-message", handleReceiveMessage);
-//     return () => socket.off("receive-message", handleReceiveMessage);
-//   }, [socket, selectedChat, addMessage]);
-
-//   // -----------------------------
-//   // NO CHAT SELECTED
-//   // -----------------------------
-//   if (!selectedChat) {
-//     return (
-//       <div style={{ display: "flex", height: "100vh" }}>
-//         <Sidebar onlineUsers={onlineUsers} />
-//         <div
-//           style={{
-//             flex: 1,
-//             display: "flex",
-//             alignItems: "center",
-//             justifyContent: "center",
-//             color: "#6b7280",
-//           }}
-//         >
-//           Select a chat to start messaging
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // -----------------------------
-//   // CHAT VIEW
-//   // -----------------------------
-//   return (
-//     <div style={{ display: "flex", height: "100vh" }}>
-//       {/* SIDEBAR */}
-//       <Sidebar onlineUsers={onlineUsers} />
-
-//       {/* CHAT COLUMN */}
-//       <div
-//         style={{
-//           flex: 1,
-//           display: "flex",
-//           flexDirection: "column",
-//           height: "100vh",
-//         }}
-//       >
-//         {/* HEADER */}
-//         <ChatHeader
-//           chat={selectedChat}
-//           currentUserId={user._id}
-//           onlineUsers={onlineUsers}
-//         />
-
-//         {/* MESSAGE LIST (SCROLLABLE) */}
-//         <div style={{ flex: 1, overflow: "hidden" }}>
-//           <MessageList
-//             messages={messages}
-//             currentUserId={user._id}
-//             chat={selectedChat}
-//           />
-//         </div>
-
-//         {/* INPUT (FIXED BOTTOM) */}
-//         <ChatInput
-//           chatId={selectedChat._id}
-//           socket={socket}
-//         />
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ChatPage;
-
-
-
-
-// ..............................................................
-
-// import { useEffect } from "react";
-// import Sidebar from "../components/Sidebar/Sidebar";
-// import ChatHeader from "../components/Chat/ChatHeader";
-// import MessageList from "../components/Chat/MessageList";
-// import ChatInput from "../components/Chat/ChatInput";
-
-// import { useAuthStore } from "../store/authStore";
-// import { useChatStore } from "../store/chatStore";
-// import useSocket from "../hooks/useSocket";
-
-// const ChatPage = () => {
-//   const { user } = useAuthStore();
-//   const {
-//     selectedChat,
-//     messages,
-//     fetchChats,
-//     addMessage,
-//     markDelivered,
-//     markSeen,
-//     onlineUsers,
-//   } = useChatStore();
-
-//   const socket = useSocket(user?._id);
-
-//   if (!user) return <div>Loading...</div>;
-
-//   useEffect(() => {
-//     fetchChats();
-//   }, [fetchChats]);
-
-//   useEffect(() => {
-//     if (!socket || !selectedChat) return;
-
-//     socket.emit("join-chat", selectedChat._id);
-//     socket.emit("mark-seen", {
-//       chatId: selectedChat._id,
-//       userId: user._id,
-//     });
-//   }, [socket, selectedChat]);
-
-//   useEffect(() => {
-//     if (!socket) return;
-
-//     socket.on("receive-message", addMessage);
-//     socket.on("message-delivered", ({ messageId }) =>
-//       markDelivered(messageId)
-//     );
-//     socket.on("message-seen", ({ userId }) =>
-//       markSeen(userId)
-//     );
-
-//     return () => {
-//       socket.off("receive-message");
-//       socket.off("message-delivered");
-//       socket.off("message-seen");
-//     };
-//   }, [socket]);
-
-//   if (!selectedChat) {
-//     return (
-//       <div style={{ display: "flex", height: "100vh" }}>
-//         <Sidebar onlineUsers={onlineUsers} />
-//         <div style={{ flex: 1 }}>Select a chat</div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div style={{ display: "flex", height: "100vh" }}>
-//       <Sidebar onlineUsers={onlineUsers} />
-
-//       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-//         <ChatHeader
-//           chat={selectedChat}
-//           currentUserId={user._id}
-//           onlineUsers={onlineUsers}
-//         />
-
-//         <div style={{ flex: 1 }}>
-//           <MessageList
-//             messages={messages}
-//             currentUserId={user._id}
-//             chat={selectedChat}
-//           />
-//         </div>
-
-//         <ChatInput chatId={selectedChat._id} socket={socket} />
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ChatPage;
-
 import { useEffect } from "react";
 import Sidebar from "../components/Sidebar/Sidebar";
 import ChatHeader from "../components/Chat/ChatHeader";
@@ -269,11 +24,12 @@ const ChatPage = () => {
     addMessage,
     markDelivered,
     markSeen,
+    deleteMessageLocal,
     onlineUsers,
   } = useChatStore();
 
   // -----------------------------
-  // LOAD USER ON PAGE LOAD ✅
+  // LOAD USER
   // -----------------------------
   useEffect(() => {
     loadUser();
@@ -300,22 +56,16 @@ const ChatPage = () => {
     }
   }, [socket, selectedChat]);
 
-  useEffect(() => {
-  if (user) {
-    socket.emit("user-online", user._id);
-  }
-}, [user]);
-
   // -----------------------------
-  // SOCKET LISTENERS
+  // SOCKET LISTENERS (ONE PLACE ONLY)
   // -----------------------------
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !user?._id) return;
 
+    // RECEIVE MESSAGE
     const handleReceiveMessage = (message) => {
       addMessage(message);
 
-      // mark seen
       socket.emit("message-seen", {
         chatId:
           typeof message.chat === "object"
@@ -325,34 +75,102 @@ const ChatPage = () => {
       });
     };
 
+    // DELIVERED
     const handleDelivered = (payload) => {
-      if (typeof markDelivered === "function") {
-        markDelivered(payload);
-      }
+      markDelivered?.(payload);
     };
 
+    // SEEN
     const handleSeen = (payload) => {
-      if (typeof markSeen === "function") {
-        markSeen(payload);
-      }
+      markSeen?.(payload);
+    };
+
+    // DELETE (ME / EVERYONE)
+    const handleMessageDeleted = ({ messageId, forEveryone }) => {
+      deleteMessageLocal(messageId, forEveryone, user._id);
     };
 
     socket.on("receive-message", handleReceiveMessage);
     socket.on("message-delivered", handleDelivered);
     socket.on("message-seen", handleSeen);
+    socket.on("message-deleted", handleMessageDeleted);
 
     return () => {
       socket.off("receive-message", handleReceiveMessage);
       socket.off("message-delivered", handleDelivered);
       socket.off("message-seen", handleSeen);
+      socket.off("message-deleted", handleMessageDeleted);
     };
-  }, [socket, addMessage, markDelivered, markSeen]);
+  }, [
+    socket,
+    user?._id,
+    addMessage,
+    markDelivered,
+    markSeen,
+    deleteMessageLocal,
+  ]);
 
   // -----------------------------
-  // WAIT FOR USER TO LOAD
+  // WAIT FOR USER (LOADING STATE)
   // -----------------------------
   if (!user) {
-    return <div style={{ padding: 20 }}>Loading...</div>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "1.5rem",
+          }}
+        >
+          {/* SPINNER */}
+          <div
+            style={{
+              width: "4rem",
+              height: "4rem",
+              border: "4px solid rgba(255, 255, 255, 0.3)",
+              borderTop: "4px solid #ffffff",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          
+          <div
+            style={{
+              color: "#ffffff",
+              fontSize: "1.25rem",
+              fontWeight: 600,
+              letterSpacing: "0.025em",
+            }}
+          >
+            Loading...
+          </div>
+        </div>
+
+        {/* SPINNER ANIMATION */}
+        <style>
+          {`
+            @keyframes spin {
+              from {
+                transform: rotate(0deg);
+              }
+              to {
+                transform: rotate(360deg);
+              }
+            }
+          `}
+        </style>
+      </div>
+    );
   }
 
   // -----------------------------
@@ -360,18 +178,135 @@ const ChatPage = () => {
   // -----------------------------
   if (!selectedChat) {
     return (
-      <div style={{ display: "flex", height: "100vh" }}>
+      <div
+        style={{
+          display: "flex",
+          height: "100vh",
+          overflow: "hidden",
+        }}
+      >
         <Sidebar onlineUsers={onlineUsers} />
+        
         <div
           style={{
             flex: 1,
-            display: "grid",
-            placeItems: "center",
-            color: "#6b7280",
-            fontSize: "1.1rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%)",
+            padding: "2rem",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          Select a chat to start messaging
+          {/* BACKGROUND DECORATION */}
+          <div
+            style={{
+              position: "absolute",
+              top: "10%",
+              right: "10%",
+              width: "300px",
+              height: "300px",
+              background: "radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%)",
+              borderRadius: "50%",
+              pointerEvents: "none",
+            }}
+          />
+          
+          <div
+            style={{
+              position: "absolute",
+              bottom: "10%",
+              left: "10%",
+              width: "200px",
+              height: "200px",
+              background: "radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, transparent 70%)",
+              borderRadius: "50%",
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* CONTENT */}
+          <div
+            style={{
+              textAlign: "center",
+              zIndex: 1,
+              animation: "fadeIn 0.5s ease-out",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "5rem",
+                marginBottom: "1.5rem",
+                opacity: 0.7,
+                filter: "grayscale(0.2)",
+              }}
+            >
+              💬
+            </div>
+            
+            <h2
+              style={{
+                fontSize: "1.75rem",
+                fontWeight: 700,
+                color: "#111827",
+                marginBottom: "0.75rem",
+                letterSpacing: "-0.025em",
+              }}
+            >
+              Welcome to Your Chat
+            </h2>
+            
+            <p
+              style={{
+                fontSize: "1.125rem",
+                color: "#6b7280",
+                maxWidth: "400px",
+                margin: "0 auto",
+                lineHeight: 1.6,
+              }}
+            >
+              Select a conversation from the sidebar to start messaging
+            </p>
+
+            {/* DECORATIVE ARROW */}
+            <div
+              style={{
+                marginTop: "2rem",
+                fontSize: "2rem",
+                opacity: 0.4,
+                animation: "bounce 2s ease-in-out infinite",
+              }}
+            >
+              ←
+            </div>
+          </div>
+
+          {/* ANIMATIONS */}
+          <style>
+            {`
+              @keyframes fadeIn {
+                from {
+                  opacity: 0;
+                  transform: translateY(20px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+              
+              @keyframes bounce {
+                0%, 100% {
+                  transform: translateX(0);
+                }
+                50% {
+                  transform: translateX(-10px);
+                }
+              }
+            `}
+          </style>
         </div>
       </div>
     );
@@ -381,17 +316,42 @@ const ChatPage = () => {
   // CHAT VIEW
   // -----------------------------
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        overflow: "hidden",
+        background: "#f9fafb",
+      }}
+    >
       <Sidebar onlineUsers={onlineUsers} />
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          background: "#ffffff",
+          boxShadow: window.innerWidth > 768 ? "-2px 0 8px rgba(0, 0, 0, 0.05)" : "none",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
         <ChatHeader chat={selectedChat} currentUserId={user._id} />
 
-        <MessageList
-          messages={messages}
-          currentUserId={user._id}
-          chat={selectedChat}
-        />
+        <div
+          style={{
+            flex: 1,
+            overflow: "hidden",
+            position: "relative",
+          }}
+        >
+          <MessageList
+            messages={messages}
+            currentUserId={user._id}
+            chat={selectedChat}
+          />
+        </div>
 
         <ChatInput chatId={selectedChat._id} socket={socket} />
       </div>
