@@ -17,6 +17,7 @@ import upload from "../middlewares/uploadMiddleware.js";
 import { uploadAvatar,getMyProfile } from "../controllers/userController.js";
 import { getAllUsers } from "../controllers/userController.js";
 import { searchUsers } from "../controllers/userController.js";
+import { blockUser, unblockUser } from "../controllers/userController.js";
 const router = express.Router();
 
 // GET ALL USERS (except logged-in user)
@@ -29,5 +30,8 @@ router.post(
 );
 router.get("/me", protect, getMyProfile);
 router.get("/", protect, searchUsers);
+router.put("/block", protect, blockUser);
+router.put("/unblock", protect, unblockUser);
+
 export default router;
 

@@ -8,7 +8,7 @@ import {
   sendImageMessage,
   // sendFileMessage,
   editMessage,
-  deleteMessage,
+  deleteMessage,clearChatForMe
 } from "../controllers/messageController.js";
 import upload from "../middlewares/upload.js";
 const router = express.Router();
@@ -33,5 +33,6 @@ router.post(
 router.put("/:id", protect, editMessage);
 // router.delete("/:id", protect, deleteMessage);
 router.delete("/:messageId", protect, deleteMessage);
+router.put("/clear", protect, clearChatForMe);
 
 export default router;

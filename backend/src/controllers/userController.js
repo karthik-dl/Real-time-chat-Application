@@ -69,3 +69,26 @@ export const searchUsers = async (req, res) => {
 
   res.json(users);
 };
+
+export const blockUser = async (req, res) => {
+  const { userId } = req.body;
+
+  await User.findByIdAndUpdate(req.user._id, {
+    $addToSet: { blockedUsers: userId },
+  });
+
+  res.json({ message: "User blocked" });
+};
+
+export const unblockUser = async (req, res) => {
+  const { userId } = req.body;
+
+  await User.findByIdAndUpdate(
+    req.user._id,
+    { $pull: { blockedUsers: userId } },
+    { new: true }
+  );
+
+  res.json({ message: "User unblocked" });
+};
+
