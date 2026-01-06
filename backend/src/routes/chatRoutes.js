@@ -28,7 +28,7 @@ import {
   addToGroup,
   removeFromGroup,
   leaveGroup,
-  deleteGroup,
+  deleteGroup,deleteChatForMe
 } from "../controllers/chatController.js";
 
 const router = express.Router();
@@ -57,5 +57,6 @@ router.put("/group/update", async (req, res) => {
 
   res.json(chat);
 });
+router.delete("/:chatId/for-me", protect, deleteChatForMe);
 
 export default router;

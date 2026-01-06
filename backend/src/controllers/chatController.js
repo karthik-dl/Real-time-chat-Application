@@ -32,7 +32,8 @@ export const createChat = async (req, res) => {
 ------------------------------------------------- */
 export const getChats = async (req, res) => {
   const chats = await Chat.find({
-    members: { $in: [req.user._id] },
+    members: req.user._id,
+    deletedBy: { $ne: req.user._id }, // ✅ IMPORTANT
   })
     .populate("members", "name avatar")
     .populate({
@@ -43,6 +44,7 @@ export const getChats = async (req, res) => {
 
   res.json(chats);
 };
+
 
 /* -------------------------------------------------
    DELETE CHAT
@@ -182,4 +184,26 @@ export const deleteGroup = async (req, res) => {
 ------------------------------------------------- */
 
 
+/* -------------------------------------------------
+   DELETE CHAT FOR ME (1-to-1 or group)
+------------------------------------------------- */
+export const deleteChatForMe = async (req, res) => {
+  const { chatId } = req.params;
+  const userId = req.user._id;
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    return res.status(404).json({ message: "Chat not found" });
+  }
+
+  // Already deleted
+  if (chat.deletedBy.includes(userId)) {
+    return res.json({ message: "Chat already removed" });
+  }
+
+  chat.deletedBy.push(userId);
+  await chat.save();
+
+  res.json({ message: "Chat removed from your list" });
+};
 

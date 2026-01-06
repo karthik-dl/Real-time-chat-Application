@@ -95,20 +95,24 @@ export const sendImageMessage = async (req, res) => {
           sender: req.user._id,
           chat: chatId,
           type: "image",
-          fileUrl: result.secure_url,
+          content: result.secure_url,
+          readBy: [req.user._id],
         });
 
         await Chat.findByIdAndUpdate(chatId, {
           lastMessage: message._id,
         });
 
-        res.status(201).json(message);
+        const fullMessage = await Message.findById(message._id)
+          .populate("sender", "name avatar");
+
+        req.io.to(chatId).emit("receive-message", fullMessage);
+
+        res.status(201).json(fullMessage);
       }
     );
 
-    // 🚨 THIS LINE IS MANDATORY
     uploadStream.end(req.file.buffer);
-
   } catch (err) {
     console.error("Send image failed:", err);
     res.status(500).json({ message: "Image upload failed" });
