@@ -1,5 +1,5 @@
 import Chat from "../models/Chat.js";
-import User from "../models/User.js";   
+import User from "../models/User.js";     
 
 /* -------------------------------------------------
    CREATE OR GET ONE-TO-ONE CHAT
@@ -7,20 +7,16 @@ import User from "../models/User.js";
 export const createChat = async (req, res) => {
   const { userId } = req.body;
 
-  if (!userId) {
-    return res.status(400).json({ message: "User ID required" });
-  }
-
-  const existingChat = await Chat.findOne({
+  let chat = await Chat.findOne({
     isGroupChat: false,
     members: { $all: [req.user._id, userId] },
   }).populate("members", "name avatar");
 
-  if (existingChat) return res.json(existingChat);
+  if (chat) return res.json(chat);
 
-  const chat = await Chat.create({
-    members: [req.user._id, userId],
+  chat = await Chat.create({
     isGroupChat: false,
+    members: [req.user._id, userId],
   });
 
   const fullChat = await Chat.findById(chat._id).populate(
@@ -35,22 +31,17 @@ export const createChat = async (req, res) => {
    GET ALL CHATS
 ------------------------------------------------- */
 export const getChats = async (req, res) => {
-  try {
-    const chats = await Chat.find({
-      members: { $in: [req.user._id] },
+  const chats = await Chat.find({
+    members: { $in: [req.user._id] },
+  })
+    .populate("members", "name avatar")
+    .populate({
+      path: "lastMessage",
+      populate: { path: "sender", select: "name avatar" },
     })
-      .populate("members", "name avatar")
-      .populate("groupAdmin", "name")
-      .populate({
-        path: "lastMessage",
-        populate: { path: "sender", select: "name avatar" },
-      })
-      .sort({ updatedAt: -1 });
+    .sort({ updatedAt: -1 });
 
-    res.json(chats);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  res.json(chats);
 };
 
 /* -------------------------------------------------
@@ -185,3 +176,10 @@ export const deleteGroup = async (req, res) => {
   await Chat.findByIdAndDelete(chatId);
   res.json({ message: "Group deleted" });
 };
+
+/* -------------------------------------------------
+   ACCESS CHAT (ONE-TO-ONE)
+------------------------------------------------- */
+
+
+

@@ -319,186 +319,166 @@
 
 // >>>>>>>>>>>>>>>>>>below code is fully updated>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-import { useChatStore } from "../../store/chatStore";
 import { formatTime } from "../../utils/formatTime";
 
-const ChatItem = ({ chat, currentUserId, onlineUsers = [], isActive }) => {
-  const { selectChat } = useChatStore();
-
+const ChatItem = ({
+  chat,
+  isActive,
+  onlineUsers = [],
+  currentUserId,
+  onClick,
+}) => {
+  // ----------------------------
+  // CHAT TYPE
+  // ----------------------------
   const isGroup = chat.isGroupChat;
 
+  // ----------------------------
+  // FIND OTHER USER (1–1 CHAT)
+  // ----------------------------
   const otherUser = !isGroup
-    ? chat.members?.find((m) => m._id !== currentUserId)
+    ? chat.members?.find(
+        (user) => user._id.toString() !== currentUserId.toString()
+      )
     : null;
 
-  const isOnline = !isGroup && otherUser && onlineUsers.includes(otherUser._id);
+  // ----------------------------
+  // NAME & AVATAR
+  // ----------------------------
+  const chatName = isGroup
+    ? chat.groupName
+    : otherUser?.name;
+
+  const avatar = isGroup
+    ? chat.groupAvatar || "/group-avatar.png"
+    : otherUser?.avatar || "/user-avatar.png";
 
   // ----------------------------
-  // LAST MESSAGE DATA
+  // ONLINE STATUS
   // ----------------------------
-  const getLastMessageData = () => {
-    if (!chat.lastMessage) {
-      return {
-        text: "No messages yet",
-        isOwn: false,
-        status: "",
-        isSeen: false,
-      };
-    }
-
-    const senderId =
-      typeof chat.lastMessage.sender === "string"
-        ? chat.lastMessage.sender
-        : chat.lastMessage.sender?._id;
-
-    const isOwn = senderId === currentUserId;
-
-    // ✓ ✓✓ logic
-    let status = "";
-    if (isOwn) {
-      if (chat.lastMessage.seen || chat.lastMessage.isRead) {
-        status = "✓✓"; // seen
-      } else if (chat.lastMessage.delivered || chat.lastMessage.isDelivered) {
-        status = "✓✓"; // delivered
-      } else {
-        status = "✓"; // sent
-      }
-    }
-
-    let content = "";
-    switch (chat.lastMessage.type) {
-      case "image":
-        content = "📷 Photo";
-        break;
-      case "file":
-        content = "📎 File";
-        break;
-      case "audio":
-        content = "🎙️ Voice message";
-        break;
-      default:
-        content = chat.lastMessage.content;
-    }
-
-    return {
-      text: isOwn ? `You: ${content}` : content,
-      isOwn,
-      status,
-      isSeen: chat.lastMessage.seen || chat.lastMessage.isRead,
-    };
-  };
-
-  const message = getLastMessageData();
+  const isOnline =
+    !isGroup && otherUser
+      ? onlineUsers.includes(otherUser._id)
+      : false;
 
   // ----------------------------
-  // STYLES
+  // LAST MESSAGE
   // ----------------------------
-  const styles = {
-    container: {
-      display: "flex",
-      alignItems: "center",
-      gap: "0.875rem",
-      padding: "1rem 1.25rem",
-      cursor: "pointer",
-      backgroundColor: isActive ? "#f0f4ff" : "transparent",
-      borderLeft: isActive ? "4px solid #667eea" : "4px solid transparent",
-    },
-    avatarWrapper: { position: "relative" },
-    avatar: {
-      width: "3.25rem",
-      height: "3.25rem",
-      borderRadius: "50%",
-      objectFit: "cover",
-    },
-    onlineDot: {
-      position: "absolute",
-      bottom: 2,
-      right: 2,
-      width: "0.8rem",
-      height: "0.8rem",
-      backgroundColor: "#10b981",
-      border: "2px solid white",
-      borderRadius: "50%",
-    },
-    chatInfo: { flex: 1, minWidth: 0 },
-    topRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: "0.25rem",
-    },
-    name: { fontWeight: 600 },
-    time: { fontSize: "0.75rem", color: "#9ca3af" },
-    bottomRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    messageContainer: {
-      display: "flex",
-      alignItems: "center",
-      gap: "0.35rem",
-      overflow: "hidden",
-    },
-    status: {
-      fontSize: "0.75rem",
-      color: message.isSeen ? "#53bdeb" : "#9ca3af",
-      fontWeight: "bold",
-    },
-    message: {
-      fontSize: "0.875rem",
-      color: chat.unreadCount > 0 ? "#1f2937" : "#6b7280",
-      overflow: "hidden",
-      whiteSpace: "nowrap",
-      textOverflow: "ellipsis",
-    },
-    badge: {
-      background: "#667eea",
-      color: "white",
-      fontSize: "0.7rem",
-      padding: "0.2rem 0.5rem",
-      borderRadius: "12px",
-    },
-  };
+  const lastMessageText = chat.lastMessage
+    ? chat.lastMessage.content || "📎 Attachment"
+    : "No messages yet";
 
   return (
-    <div style={styles.container} onClick={() => selectChat(chat)}>
+    <div
+      onClick={onClick}
+      style={{
+        padding: "0.75rem 1rem",
+        cursor: "pointer",
+        background: isActive ? "#eef2ff" : "transparent",
+        display: "flex",
+        gap: "0.75rem",
+        alignItems: "center",
+      }}
+    >
       {/* AVATAR */}
-      <div style={styles.avatarWrapper}>
+      <div style={{ position: "relative" }}>
         <img
-          src={
-            isGroup
-              ? chat.groupAvatar || "/group-avatar.png"
-              : otherUser?.avatar || "/user-avatar.png"
-          }
-          alt="avatar"
-          style={styles.avatar}
+          src={avatar}
+          alt={chatName}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            objectFit: "cover",
+          }}
         />
-        {isOnline && <span style={styles.onlineDot} />}
+
+        {/* ONLINE DOT */}
+        {isOnline && (
+          <span
+            style={{
+              position: "absolute",
+              bottom: 2,
+              right: 2,
+              width: 10,
+              height: 10,
+              background: "#22c55e",
+              borderRadius: "50%",
+              border: "2px solid white",
+            }}
+          />
+        )}
       </div>
 
       {/* INFO */}
-      <div style={styles.chatInfo}>
-        <div style={styles.topRow}>
-          <span style={styles.name}>
-            {isGroup ? chat.groupName : otherUser?.name}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* TOP ROW */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              color: "#111827",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {chatName}
           </span>
+
           {chat.lastMessage && (
-            <span style={styles.time}>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                color: "#6b7280",
+                marginLeft: "0.5rem",
+              }}
+            >
               {formatTime(chat.lastMessage.createdAt)}
             </span>
           )}
         </div>
 
-        <div style={styles.bottomRow}>
-          <div style={styles.messageContainer}>
-            {message.isOwn && message.status && (
-              <span style={styles.status}>{message.status}</span>
-            )}
-            <span style={styles.message}>{message.text}</span>
-          </div>
+        {/* BOTTOM ROW */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "2px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "0.8rem",
+              color: "#6b7280",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {lastMessageText}
+          </span>
 
           {chat.unreadCount > 0 && (
-            <span style={styles.badge}>
+            <span
+              style={{
+                background: "#6366f1",
+                color: "white",
+                borderRadius: "999px",
+                padding: "0 7px",
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                marginLeft: "6px",
+              }}
+            >
               {chat.unreadCount > 99 ? "99+" : chat.unreadCount}
             </span>
           )}

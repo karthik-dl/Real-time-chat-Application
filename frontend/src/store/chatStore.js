@@ -15,6 +15,11 @@ export const useChatStore = create((set, get) => ({
   typingUser: null,
 
   // -------------------------
+  // SET MESSAGES
+  // -------------------------
+
+  setMessages: (messages) => set({ messages }),
+  // -------------------------
   // SET REPLY TO
   // -------------------------
   setReplyTo: (message) => set({ replyTo: message }),
@@ -38,6 +43,17 @@ export const useChatStore = create((set, get) => ({
     set({ chats: res.data });
   },
 
+  // -------------------------
+  // ADD CHAT
+  // -------------------------
+   addChat: (chat) =>
+  set((state) => ({
+    chats: state.chats.some((c) => c._id === chat._id)
+      ? state.chats
+      : [chat, ...state.chats],
+  })),
+
+selectChat: (chat) => set({ selectedChat: chat }),
   // -------------------------
   // SELECT CHAT
   // -------------------------

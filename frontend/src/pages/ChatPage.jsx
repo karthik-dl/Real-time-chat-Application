@@ -346,11 +346,13 @@ const ChatPage = () => {
             position: "relative",
           }}
         >
-          <MessageList
+          {/* <MessageList
             messages={messages}
             currentUserId={user._id}
             chat={selectedChat}
-          />
+          /> */}
+          <MessageList currentUserId={user._id} chat={selectedChat} />
+
         </div>
 
         <ChatInput chatId={selectedChat._id} socket={socket} />

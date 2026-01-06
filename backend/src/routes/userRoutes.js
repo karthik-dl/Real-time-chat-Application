@@ -16,7 +16,7 @@ import protect from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import { uploadAvatar,getMyProfile } from "../controllers/userController.js";
 import { getAllUsers } from "../controllers/userController.js";
-
+import { searchUsers } from "../controllers/userController.js";
 const router = express.Router();
 
 // GET ALL USERS (except logged-in user)
@@ -28,6 +28,6 @@ router.post(
   uploadAvatar
 );
 router.get("/me", protect, getMyProfile);
-
+router.get("/", protect, searchUsers);
 export default router;
 

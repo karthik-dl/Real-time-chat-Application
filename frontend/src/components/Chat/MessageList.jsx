@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import MessageItem from "./MessageItem";
+import api from "../../services/api";
+import { useChatStore } from "../../store/chatStore";
 
-const MessageList = ({ messages = [], currentUserId, chat }) => {
+
+const MessageList = ({ currentUserId, chat }) => {
   const bottomRef = useRef(null);
   const containerRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+ const messages = useChatStore((s) => s.messages);
+
+
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {

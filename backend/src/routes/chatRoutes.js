@@ -44,6 +44,8 @@ router.put("/group/add", protect, addToGroup);
 router.put("/group/remove", protect, removeFromGroup);
 router.put("/group/leave", protect, leaveGroup);
 router.delete("/group/delete", protect, deleteGroup);
+// router.post("/access", protect, accessChat);
+// router.get("/", protect, fetchChats);
 router.put("/group/update", async (req, res) => {
   const { chatId, groupName, groupAvatar } = req.body;
 

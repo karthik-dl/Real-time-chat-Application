@@ -53,3 +53,19 @@ export const getMyProfile = async (req, res) => {
 
   res.json(user);
 };
+
+
+
+export const searchUsers = async (req, res) => {
+  const keyword = req.query.search
+    ? {
+        name: { $regex: req.query.search, $options: "i" },
+      }
+    : {};
+
+  const users = await User.find(keyword)
+    .find({ _id: { $ne: req.user._id } })
+    .select("name avatar email");
+
+  res.json(users);
+};
